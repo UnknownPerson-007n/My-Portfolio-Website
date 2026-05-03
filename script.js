@@ -1,18 +1,77 @@
-// ==================== NAVIGATION FUNCTIONALITY ====================
+// ==================== CUSTOM CURSOR ====================
+const cursorDot = document.getElementById('cursorDot');
 
-// Mobile Menu Toggle
+document.addEventListener('mousemove', (e) => {
+    cursorDot.style.left = e.clientX + 'px';
+    cursorDot.style.top = e.clientY + 'px';
+});
+
+document.addEventListener('mouseenter', () => { cursorDot.style.opacity = '1'; });
+document.addEventListener('mouseleave', () => { cursorDot.style.opacity = '0'; });
+
+document.querySelectorAll('a, button, .skill-tag, .project-card').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+        cursorDot.style.width = '20px';
+        cursorDot.style.height = '20px';
+        cursorDot.style.opacity = '0.5';
+    });
+    el.addEventListener('mouseleave', () => {
+        cursorDot.style.width = '8px';
+        cursorDot.style.height = '8px';
+        cursorDot.style.opacity = '1';
+    });
+});
+
+// ==================== TYPING ANIMATION ====================
+const phrases = [
+    'Full-Stack Developer',
+    'AI Systems Engineer',
+    'Automation Builder',
+    'CS Student @ MJCET'
+];
+
+let phraseIndex = 0;
+let charIndex = 0;
+let isDeleting = false;
+const typingEl = document.getElementById('typingText');
+
+function type() {
+    const currentPhrase = phrases[phraseIndex];
+
+    if (isDeleting) {
+        typingEl.textContent = currentPhrase.substring(0, charIndex - 1);
+        charIndex--;
+    } else {
+        typingEl.textContent = currentPhrase.substring(0, charIndex + 1);
+        charIndex++;
+    }
+
+    let speed = isDeleting ? 50 : 100;
+
+    if (!isDeleting && charIndex === currentPhrase.length) {
+        speed = 2000;
+        isDeleting = true;
+    } else if (isDeleting && charIndex === 0) {
+        isDeleting = false;
+        phraseIndex = (phraseIndex + 1) % phrases.length;
+        speed = 400;
+    }
+
+    setTimeout(type, speed);
+}
+
+window.addEventListener('load', () => setTimeout(type, 800));
+
+// ==================== NAVIGATION ====================
 const hamburger = document.getElementById('hamburger');
 const navLinks = document.getElementById('navLinks');
 const navLinksItems = document.querySelectorAll('.nav-link');
+const navbar = document.getElementById('navbar');
 
-// Toggle mobile menu
 hamburger.addEventListener('click', () => {
     navLinks.classList.toggle('active');
-    
-    // Animate hamburger icon
-    const bars = hamburger.querySelectorAll('.bar');
     hamburger.classList.toggle('active');
-    
+    const bars = hamburger.querySelectorAll('.bar');
     if (hamburger.classList.contains('active')) {
         bars[0].style.transform = 'rotate(-45deg) translate(-5px, 6px)';
         bars[1].style.opacity = '0';
@@ -24,7 +83,6 @@ hamburger.addEventListener('click', () => {
     }
 });
 
-// Close mobile menu when clicking on a link
 navLinksItems.forEach(link => {
     link.addEventListener('click', () => {
         navLinks.classList.remove('active');
@@ -36,67 +94,36 @@ navLinksItems.forEach(link => {
     });
 });
 
-// ==================== SCROLL EFFECTS ====================
-
-// Navbar scroll effect
-const navbar = document.getElementById('navbar');
-let lastScroll = 0;
-
+// Navbar scroll
 window.addEventListener('scroll', () => {
-    const currentScroll = window.pageYOffset;
-    
-    // Add scrolled class for styling
-    if (currentScroll > 50) {
+    if (window.pageYOffset > 50) {
         navbar.classList.add('scrolled');
     } else {
         navbar.classList.remove('scrolled');
     }
-    
-    lastScroll = currentScroll;
 });
 
-// ==================== SMOOTH SCROLLING ====================
-
-// Smooth scroll for anchor links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        const targetId = this.getAttribute('href');
-        if (targetId === '#') return;
-        
-        const targetElement = document.querySelector(targetId);
-        
-        if (targetElement) {
-            const headerOffset = 80;
-            const elementPosition = targetElement.getBoundingClientRect().top;
-            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-            
-            window.scrollTo({
-                top: offsetPosition,
-                behavior: 'smooth'
-            });
-        }
-    });
+// ESC closes mobile menu
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        navLinks.classList.remove('active');
+        hamburger.classList.remove('active');
+    }
 });
 
-// ==================== ACTIVE SECTION HIGHLIGHTING ====================
-
-// Highlight active section in navigation
+// ==================== ACTIVE SECTION HIGHLIGHT ====================
 const sections = document.querySelectorAll('section[id]');
 
-function highlightNavigation() {
-    const scrollPosition = window.pageYOffset;
-    
+function highlightNav() {
+    const scrollY = window.pageYOffset;
     sections.forEach(section => {
-        const sectionTop = section.offsetTop - 100;
-        const sectionHeight = section.offsetHeight;
-        const sectionId = section.getAttribute('id');
-        
-        if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+        const top = section.offsetTop - 120;
+        const height = section.offsetHeight;
+        const id = section.getAttribute('id');
+        if (scrollY >= top && scrollY < top + height) {
             navLinksItems.forEach(link => {
                 link.classList.remove('active');
-                if (link.getAttribute('href') === `#${sectionId}`) {
+                if (link.getAttribute('href') === `#${id}`) {
                     link.classList.add('active');
                 }
             });
@@ -104,370 +131,154 @@ function highlightNavigation() {
     });
 }
 
-window.addEventListener('scroll', highlightNavigation);
+window.addEventListener('scroll', highlightNav);
 
-// ==================== INTERSECTION OBSERVER FOR ANIMATIONS ====================
+// ==================== SMOOTH SCROLL ====================
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            window.scrollTo({
+                top: target.offsetTop - 80,
+                behavior: 'smooth'
+            });
+        }
+    });
+});
 
-// Fade-in animation for elements on scroll
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
+// ==================== SCROLL REVEAL ====================
+const fadeEls = document.querySelectorAll('.skill-category, .project-card, .contact-method, .about-text p, .stat-box');
 
-const observer = new IntersectionObserver((entries) => {
+const revealObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
             entry.target.style.opacity = '1';
             entry.target.style.transform = 'translateY(0)';
         }
     });
-}, observerOptions);
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
-// Observe skill items and project cards
-const animateElements = document.querySelectorAll('.skill-item, .project-card');
-animateElements.forEach(element => {
-    observer.observe(element);
+fadeEls.forEach((el, i) => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(16px)';
+    el.style.transition = `opacity 0.5s ease ${i * 0.05}s, transform 0.5s ease ${i * 0.05}s`;
+    revealObserver.observe(el);
 });
 
-// ==================== CONTACT FORM HANDLING ====================
+// ==================== TERMINAL LINE ANIMATION ====================
+const terminalLines = document.querySelectorAll('.terminal-line');
+terminalLines.forEach((line, i) => {
+    line.style.opacity = '0';
+    setTimeout(() => {
+        line.style.transition = 'opacity 0.3s ease';
+        line.style.opacity = '1';
+    }, 600 + i * 120);
+});
 
+// ==================== CONTACT FORM ====================
 const contactForm = document.getElementById('contactForm');
 
 contactForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    
-    // Get form values
+
     const name = document.getElementById('name').value.trim();
     const email = document.getElementById('email').value.trim();
     const subject = document.getElementById('subject').value.trim();
     const message = document.getElementById('message').value.trim();
-    
-    // Validate form
+
     if (!name || !email || !subject || !message) {
-        showNotification('Please fill in all fields', 'error');
+        showNotification('// error: all fields required', 'error');
         return;
     }
-    
-    // Validate email format
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-        showNotification('Please enter a valid email address', 'error');
+        showNotification('// error: invalid email format', 'error');
         return;
     }
-    
-    // Show success message
-    showNotification('Thank you for your message! I will get back to you soon.', 'success');
-    
-    // Reset form
+
+    showNotification('// message sent successfully!', 'success');
     contactForm.reset();
-    
-    // Optional: Here you can add code to send the form data to a server
-    // For example, using fetch() to submit to a backend API
 });
 
-// ==================== NOTIFICATION SYSTEM ====================
-
+// ==================== NOTIFICATION ====================
 function showNotification(message, type = 'success') {
-    // Remove existing notification if any
-    const existingNotification = document.querySelector('.notification');
-    if (existingNotification) {
-        existingNotification.remove();
-    }
-    
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-        <div class="notification-content">
-            <span class="notification-icon">${type === 'success' ? '✓' : '⚠'}</span>
-            <span class="notification-message">${message}</span>
-        </div>
-    `;
-    
-    // Style the notification
-    Object.assign(notification.style, {
+    const existing = document.querySelector('.notification');
+    if (existing) existing.remove();
+
+    const note = document.createElement('div');
+    note.className = 'notification';
+
+    Object.assign(note.style, {
         position: 'fixed',
-        top: '100px',
+        top: '90px',
         right: '20px',
-        padding: '16px 24px',
-        borderRadius: '8px',
-        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+        padding: '14px 20px',
+        borderRadius: '2px',
         zIndex: '10000',
-        fontWeight: '600',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: '0.8rem',
+        fontWeight: '500',
+        maxWidth: '380px',
+        border: '1px solid',
         animation: 'slideInRight 0.3s ease',
-        maxWidth: '400px',
-        minWidth: '300px'
+        letterSpacing: '0.3px'
     });
-    
+
     if (type === 'success') {
-        notification.style.background = '#10b981';
-        notification.style.color = 'white';
+        note.style.background = 'rgba(100, 220, 180, 0.1)';
+        note.style.borderColor = 'rgba(100, 220, 180, 0.4)';
+        note.style.color = '#64dcb4';
     } else {
-        notification.style.background = '#ef4444';
-        notification.style.color = 'white';
+        note.style.background = 'rgba(239, 68, 68, 0.1)';
+        note.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+        note.style.color = '#f87171';
     }
-    
-    // Add notification styles
-    const notificationStyle = document.createElement('style');
-    notificationStyle.textContent = `
-        @keyframes slideInRight {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
+
+    note.textContent = message;
+
+    if (!document.getElementById('note-style')) {
+        const s = document.createElement('style');
+        s.id = 'note-style';
+        s.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(120%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
             }
-            to {
-                transform: translateX(0);
-                opacity: 1;
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(120%); opacity: 0; }
             }
-        }
-        
-        @keyframes slideOutRight {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-        }
-        
-        .notification-content {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .notification-icon {
-            font-size: 1.25rem;
-            font-weight: bold;
-        }
-        
-        @media (max-width: 480px) {
-            .notification {
-                right: 10px !important;
-                left: 10px !important;
-                min-width: auto !important;
-                max-width: calc(100% - 20px) !important;
-            }
-        }
-    `;
-    
-    if (!document.getElementById('notification-styles')) {
-        notificationStyle.id = 'notification-styles';
-        document.head.appendChild(notificationStyle);
+        `;
+        document.head.appendChild(s);
     }
-    
-    // Add to body
-    document.body.appendChild(notification);
-    
-    // Remove after 5 seconds
+
+    document.body.appendChild(note);
+
     setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }, 5000);
+        note.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => note.remove(), 300);
+    }, 4000);
 }
 
-// ==================== BACK TO TOP BUTTON ====================
+// ==================== BACK TO TOP ====================
+const backToTopBtn = document.getElementById('backToTop');
 
-const backToTopButton = document.getElementById('backToTop');
-
-// Show/hide back to top button
 window.addEventListener('scroll', () => {
-    if (window.pageYOffset > 300) {
-        backToTopButton.classList.add('show');
+    if (window.pageYOffset > 400) {
+        backToTopBtn.classList.add('show');
     } else {
-        backToTopButton.classList.remove('show');
+        backToTopBtn.classList.remove('show');
     }
 });
 
-// Scroll to top when clicking the button
-backToTopButton.addEventListener('click', () => {
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-    });
+backToTopBtn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
-// ==================== TYPING ANIMATION (Optional) ====================
-
-// Uncomment this section if you want a typing effect for the hero title
-/*
-const typingText = document.querySelector('.typing-text');
-const textToType = 'Frontend Developer';
-let charIndex = 0;
-
-function typeWriter() {
-    if (charIndex < textToType.length) {
-        typingText.textContent = textToType.substring(0, charIndex + 1);
-        charIndex++;
-        setTimeout(typeWriter, 150);
-    }
-}
-
-// Start typing effect after page loads
-window.addEventListener('load', () => {
-    typingText.textContent = '';
-    setTimeout(typeWriter, 500);
-});
-*/
-
-// ==================== FORM INPUT ENHANCEMENTS ====================
-
-// Add floating label effect to form inputs
-const formInputs = document.querySelectorAll('.form-group input, .form-group textarea');
-
-formInputs.forEach(input => {
-    // Add focus effect
-    input.addEventListener('focus', () => {
-        input.parentElement.classList.add('focused');
-    });
-    
-    // Remove focus effect
-    input.addEventListener('blur', () => {
-        if (!input.value) {
-            input.parentElement.classList.remove('focused');
-        }
-    });
-    
-    // Check if input has value on page load
-    if (input.value) {
-        input.parentElement.classList.add('focused');
-    }
-});
-
-// ==================== PROJECT CARD ANIMATIONS ====================
-
-// Add hover tilt effect to project cards (Optional)
-const projectCards = document.querySelectorAll('.project-card');
-
-projectCards.forEach(card => {
-    card.addEventListener('mouseenter', () => {
-        card.style.transition = 'all 0.3s ease';
-    });
-    
-    card.addEventListener('mouseleave', () => {
-        card.style.transform = '';
-    });
-});
-
-// ==================== SKILL CARDS STAGGER ANIMATION ====================
-
-// Stagger animation for skill cards
-const skillCards = document.querySelectorAll('.skill-item');
-const skillObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry, index) => {
-        if (entry.isIntersecting) {
-            setTimeout(() => {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-            }, index * 100);
-            skillObserver.unobserve(entry.target);
-        }
-    });
-}, { threshold: 0.1 });
-
-skillCards.forEach(card => {
-    skillObserver.observe(card);
-});
-
-// ==================== PREVENT FORM RESUBMISSION ====================
-
-// Prevent accidental form resubmission
-if (window.history.replaceState) {
-    window.history.replaceState(null, null, window.location.href);
-}
-
-// ==================== PAGE LOAD ANIMATION ====================
-
-// Fade in hero content on page load
-window.addEventListener('load', () => {
-    const heroContent = document.querySelector('.hero-content');
-    if (heroContent) {
-        heroContent.style.opacity = '1';
-        heroContent.style.transform = 'translateY(0)';
-    }
-});
-
-// ==================== SCROLL REVEAL FOR SECTIONS ====================
-
-// Reveal sections on scroll
-const revealSections = document.querySelectorAll('section');
-const sectionObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-        }
-    });
-}, { threshold: 0.1 });
-
-revealSections.forEach(section => {
-    section.style.opacity = '0';
-    section.style.transform = 'translateY(30px)';
-    section.style.transition = 'all 0.6s ease';
-    sectionObserver.observe(section);
-});
-
-// ==================== CONSOLE MESSAGE ====================
-
-console.log('%c🚀 Portfolio Website Loaded Successfully!', 'color: #2563eb; font-size: 16px; font-weight: bold;');
-console.log('%cDeveloped by Mauaz Ali Shaik', 'color: #10b981; font-size: 14px;');
-console.log('%cFrontend Developer | Passionate about creating user-friendly interfaces', 'color: #6b7280; font-size: 12px;');
-
-// ==================== PERFORMANCE OPTIMIZATION ====================
-
-// Debounce function for scroll events
-function debounce(func, wait = 10, immediate = true) {
-    let timeout;
-    return function() {
-        const context = this;
-        const args = arguments;
-        const later = function() {
-            timeout = null;
-            if (!immediate) func.apply(context, args);
-        };
-        const callNow = immediate && !timeout;
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-        if (callNow) func.apply(context, args);
-    };
-}
-
-// Apply debounce to scroll-heavy functions
-window.addEventListener('scroll', debounce(highlightNavigation));
-
-// ==================== ACCESSIBILITY ENHANCEMENTS ====================
-
-// Add keyboard navigation support
-document.addEventListener('keydown', (e) => {
-    // ESC key closes mobile menu
-    if (e.key === 'Escape' && navLinks.classList.contains('active')) {
-        navLinks.classList.remove('active');
-        hamburger.classList.remove('active');
-    }
-});
-
-// Focus trap for mobile menu
-const focusableElements = navLinks.querySelectorAll('a, button');
-const firstFocusable = focusableElements[0];
-const lastFocusable = focusableElements[focusableElements.length - 1];
-
-navLinks.addEventListener('keydown', (e) => {
-    if (e.key === 'Tab') {
-        if (e.shiftKey && document.activeElement === firstFocusable) {
-            e.preventDefault();
-            lastFocusable.focus();
-        } else if (!e.shiftKey && document.activeElement === lastFocusable) {
-            e.preventDefault();
-            firstFocusable.focus();
-        }
-    }
-});
-
-// ==================== END OF SCRIPT ====================
+// ==================== CONSOLE ====================
+console.log('%c[MAS] Portfolio', 'color: #64dcb4; font-family: monospace; font-size: 16px; font-weight: bold;');
+console.log('%c> Maaz Ali Shaik — Full-Stack & AI Developer', 'color: #7a7a9a; font-family: monospace; font-size: 13px;');
+console.log('%c> Hyderabad, India', 'color: #4a4a6a; font-family: monospace; font-size: 12px;');
